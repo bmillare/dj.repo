@@ -1,19 +1,25 @@
-(ns dj.cljs.inputdom
+(ns dj.cljs.input
   (:require [om.core :as om :include-macros true]
-            [om.dom :as dom :include-macros true]))
+            [om.dom :as dom :include-macros true]
+            [cljs.core.async :as cca]))
 
-(defn inputdom [id opts]
+(defn input [id opts]
   (merge {:id id
-          :chan:output:id nil ;; needs to be set on creation
+          :chan:output:id nil ;; needs to be bound during connection time
+          :chan:output nil
+          :dom:text ""
           :dom:component (fn [data owner]
-                           (reify
-                             om/IRender
-                             (render [this]
-                               (dom/input #js {:onChange (fn [e]
-                                                           (om/set-state! owner
-                                                                          :text
-                                                                          (.. e -target -value)))
-                                               :value (:text state)}))))}
+                           (let [{:keys [dom:text chan:output]} (get data id)]
+                             (reify
+                               om/IRender
+                               (render [this]
+                                 (dom/input #js {:onChange (fn [e]
+                                                             (cca/go
+                                                              (cca/>! chan:output
+                                                                      {:id id
+                                                                       :event:type :onChange
+                                                                       :event:value (.. e -target -value)})))
+                                                 :value dom:text})))))}
          opts))
 
 ;; on state-change

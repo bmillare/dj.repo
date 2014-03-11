@@ -1,8 +1,27 @@
 (ns dj.cljs.components
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [clojure.set :as cs]
             [cljs.core.async :as cca])
   (:require-macros [cljs.core.async.macros :as ccam]))
+
+;; BUG: This overwrites existing reactions
+;; Need to keep track of:
+;; -id of reaction
+;; no such things as parents, only users
+
+;; a reaction is just like any other entity, we check for duplicates by checking the reaction id
+(defn install-reactions [data parent:id reactions]
+  (let [{:keys [reactions-active:index]} data]
+    (-> data
+        (update-in [parent:id :reaction:ids]
+                   (fn [reaction:ids]
+                     (if reaction:ids
+                       (cs/union reaction:ids .))))
+        (assoc (merge data rule-index)
+          :reactions:active (vec (vals rule-index))))))
+
+(def keyCodes {:enter 13})
 
 (defn focus-owner [owner]
   (.focus (om/get-node owner)))
@@ -50,8 +69,23 @@
                   :event:type :onKeyUp
                   :event:value keyCode}))))))
 
+(defn event-external-refocus
+  "requires that external has chan:external and target has redirect-focus:id"
+  [id data owner_]
+  (let [{:keys [redirect-focus:id]} (get data id)
+        {:keys [chan:external]} (get data redirect-focus:id)]
+    (fn [e_]
+      (ccam/go
+       (cca/>! chan:external
+               focus-owner)))))
+
 (defn input [id opts]
   (merge {:id id
+          :reactions [(fn [data e]
+                        (if (= (:event:type e) :onChange)
+                          (assoc-in data [id :dom:text] (:event:value e))
+                          data))]
+          :reaction:ids #{}
           :chan:output:id nil ;; needs to be bound during connection time
           :chan:output nil
           :chan:external:id nil ;; receive channel of functions, will pass owner to function, userful for refocusing
@@ -66,6 +100,7 @@
                                                (event:onChange id data owner))
                                  onKeyUp-fn (when event:onKeyUp
                                               (event:onKeyUp id data owner))]
+                             ;; I am guessing we only need reify for beyond just IRender cases
                              (reify
                                om/IWillMount
                                (will-mount [this]

@@ -5,6 +5,16 @@
             [cljs.core.async :as cca])
   (:require-macros [cljs.core.async.macros :as ccam]))
 
+;; Reaction handling
+;; -rule tree
+;; actions on leaves
+
+;; Reactions
+;; -first class entity
+;; -keep track of :parents/children (if you die, children die)
+;; -keep track of users in reaction
+;; -users keep track of reactions they are using
+
 ;; BUG: This overwrites existing reactions
 ;; Need to keep track of:
 ;; -id of reaction

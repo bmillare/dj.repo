@@ -4,6 +4,9 @@
 
 ;; binding-check check values at start of root node, actions thread the state through
 
+(defn throw-error [msg]
+  (throw (Exception. msg)))
+
 (defn ->actions [actions]
   (fn [data e]
     (loop [as actions
@@ -15,28 +18,27 @@
                  (a d e)))))))
 
 (defn ->node [binding-check action-fn children-fn else-fn]
-  (if children-fn
-    (if else-fn
-      ;; template fn, others are for degenerate cases
-      (fn [data0 datai e]
-        (if (binding-check data0 e)
-          (let [dataii (actions-fn datai e)]
-            (children-fn data0 dataii e))
-          (else-fn data0 datai e)))
-      (fn [data0 datai e]
-        (if (binding-check data0 e)
-          (let [dataii (actions-fn datai e)]
-            (children-fn data0 dataii e)))))
-    (if else-fn
-      (fn [data0 datai e]
-        (if (binding-check data0 e)
-          (actions-fn datai e)
-          (else-fn data0 datai e)))
-      (fn [data0 datai e]
-        (if (binding-check data0 e)
-          (actions-fn datai e))))))
+  ;; compile time checks to remove runtime checks
+  (case [(some? children-fn) (some? else-fn)]
+    ;; template fn, others are for degenerate cases
+    [true true] (fn [data0 datai e]
+                  (if (binding-check data0 e)
+                    (let [dataii (actions-fn datai e)]
+                      (children-fn data0 dataii e))
+                    (else-fn data0 datai e)))
+    [true false] (fn [data0 datai e]
+                   (if (binding-check data0 e)
+                     (let [dataii (actions-fn datai e)]
+                       (children-fn data0 dataii e))))
+    [false true] (fn [data0 datai e]
+                   (if (binding-check data0 e)
+                     (actions-fn datai e)
+                     (else-fn data0 datai e)))
+    [false false] (fn [data0 datai e]
+                    (if (binding-check data0 e)
+                      (actions-fn datai e)))))
 
-;; inlining for performance
+;; inlining for performance, does not currently support more than 4 keys deep
 (defn ->event-check
   ([v k1]
      (fn [data0 e]
@@ -108,18 +110,15 @@
         [t & ks-v] binding0
         ks (drop-last ks-v)
         v (last ks-v)]
-    (->node (if (= t :e)
-              (apply ->event-check v ks)
-              (if (= t :data)
-                (apply ->data-check v ks)
-                :error))
+    (->node (case t
+              :e (apply ->event-check v ks)
+              :data (apply ->data-check v ks)
+              (throw-error (str "unrecognized input " t)))
             (->actions (:actions child))
-            (if (empty? children:child)
-              nil
+            (when-not (empty? children:child)
               (->children* children:child
                            (keys children:child)))
-            (if (empty? rbindings)
-              nil
+            (when-not (empty? rbindings)
               (->children* children
                            rbindings)))))
 

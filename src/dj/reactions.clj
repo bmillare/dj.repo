@@ -17,7 +17,7 @@
           (recur (next as)
                  (a d e)))))))
 
-(defn ->node [binding-check action-fn children-fn else-fn]
+(defn ->node [binding-check actions-fn children-fn else-fn]
   ;; compile time checks to remove runtime checks
   (case [(some? children-fn) (some? else-fn)]
     ;; template fn, others are for degenerate cases
@@ -102,7 +102,7 @@
 ;; :data for data
 ;; [:e :key value]
 
-(defn ->children* [children bindings]
+(defn ->children [children bindings]
   (let [binding0 (first bindings)
         rbindings (next bindings)
         child (get children binding0)
@@ -114,14 +114,43 @@
               :e (apply ->event-check v ks)
               :data (apply ->data-check v ks)
               (throw-error (str "unrecognized input " t)))
-            (->actions (:actions child))
+            (->actions (vals (:actions child)))
             (when-not (empty? children:child)
-              (->children* children:child
-                           (keys children:child)))
+              (->children children:child
+                          (keys children:child)))
             (when-not (empty? rbindings)
-              (->children* children
-                           rbindings)))))
+              (->children children
+                          rbindings)))))
 
-(defn ->children [children]
+(defn ->reaction-fn [children]
   (let [bindings (keys children)]
-    (->children* children bindings)))
+    (->children children bindings)))
+
+;; input data structure format
+;; {binding {:actions actions :children children} ...}
+;; binding => [:e/:data key val]
+;; actions => map of ids -> fn that accept data and event, we use ids to allow incremental addition and removal of compile tree
+;; children => recursive map of self-type
+
+(defn add-reaction [tree rules id action]
+  (assoc-in tree
+            (into (vec (interpose :children rules)) [:actions id])
+            action))
+
+;; specifying rules enables efficient lookup
+(defn remove-reaction [tree rules id]
+  (update-in tree
+             (conj (vec (interpose :children rules)) :actions)
+             dissoc
+             id))
+
+(comment
+  (let [r (dj.reactions/->reaction-fn {[:data :x 1] {#_ #_ :actions {1 (fn [d_ e_] (println "hello world"))
+                                                                     2 (fn [d_ e_] (println "wassap"))}
+                                                     :children {[:e :y 3] {:actions {1 (fn [d_ e_] (println "aaaa"))}}}}
+                                       [:e :y 3] {:actions {1 (fn [d_ e_] (println "hello world"))
+                                                            2 (fn [d_ e_] (println "wassap"))}
+                                                  :children {[:e :y 2] {:actions [(fn [d_ e_] (println "aaaa"))]}}}})
+        data {:x 2}
+        e {:y 3}]
+    (r data data e)))

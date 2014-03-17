@@ -5,32 +5,6 @@
             [cljs.core.async :as cca])
   (:require-macros [cljs.core.async.macros :as ccam]))
 
-;; Reaction handling
-;; -rule tree
-;; actions on leaves
-
-;; Reactions
-;; -first class entity
-;; -keep track of :parents/children (if you die, children die)
-;; -keep track of users in reaction
-;; -users keep track of reactions they are using
-
-;; BUG: This overwrites existing reactions
-;; Need to keep track of:
-;; -id of reaction
-;; no such things as parents, only users
-
-;; a reaction is just like any other entity, we check for duplicates by checking the reaction id
-(defn install-reactions [data parent:id reactions]
-  (let [{:keys [reactions-active:index]} data]
-    (-> data
-        (update-in [parent:id :reaction:ids]
-                   (fn [reaction:ids]
-                     (if reaction:ids
-                       (cs/union reaction:ids .))))
-        (assoc (merge data rule-index)
-          :reactions:active (vec (vals rule-index))))))
-
 (def keyCodes {:enter 13})
 
 (defn focus-owner [owner]
@@ -89,13 +63,14 @@
        (cca/>! chan:external
                focus-owner)))))
 
+(def input-reaction [id opts]
+  (merge {:id id :rules [[:e :event:type :onChange]] (fn [data e]
+                                                       (assoc-in data [(:component:id opts) :dom:text] (:event:value e)))}
+         opts))
+
 (defn input [id opts]
   (merge {:id id
-          :reactions [(fn [data e]
-                        (if (= (:event:type e) :onChange)
-                          (assoc-in data [id :dom:text] (:event:value e))
-                          data))]
-          :reaction:ids #{}
+          :reactions:owned-ids #{} ;; auto-deactivating of owned reactions be a reaction or a deactivate hook, or maybe part of a generic destructor hook?
           :chan:output:id nil ;; needs to be bound during connection time
           :chan:output nil
           :chan:external:id nil ;; receive channel of functions, will pass owner to function, userful for refocusing

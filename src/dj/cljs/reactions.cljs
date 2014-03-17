@@ -4,8 +4,12 @@
 
 ;; binding-check check values at start of root node, actions thread the state through
 
+;; compatability with clojure 1.6.0
+(defn some? [x]
+  (not (nil? x)))
+
 (defn throw-error [msg]
-  (throw (Exception. msg)))
+  (throw (js/Error. msg)))
 
 (defn ->actions [actions]
   (fn [data e]

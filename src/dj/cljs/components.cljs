@@ -64,8 +64,11 @@
                focus-owner)))))
 
 (def input-reaction [id opts]
-  (merge {:id id :rules [[:e :event:type :onChange]] (fn [data e]
-                                                       (assoc-in data [(:component:id opts) :dom:text] (:event:value e)))}
+  (merge {:id id
+          :rules [[:e :event:type :onChange]]
+          :action (let [component:id (:component:id opts)]
+                    (fn [data e]
+                      (assoc-in data [component:id :dom:text] (:event:value e))))}
          opts))
 
 (defn input [id opts]

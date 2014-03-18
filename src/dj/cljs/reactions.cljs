@@ -1,4 +1,4 @@
-(ns dj.reactions)
+(ns dj.cljs.reactions)
 
 ;; compile a function that executes actions when certain rules are true
 
@@ -33,14 +33,16 @@
     [true false] (fn [data0 datai e]
                    (if (binding-check data0 e)
                      (let [dataii (actions-fn datai e)]
-                       (children-fn data0 dataii e))))
+                       (children-fn data0 dataii e))
+                     datai))
     [false true] (fn [data0 datai e]
                    (if (binding-check data0 e)
                      (actions-fn datai e)
                      (else-fn data0 datai e)))
     [false false] (fn [data0 datai e]
                     (if (binding-check data0 e)
-                      (actions-fn datai e)))))
+                      (actions-fn datai e)
+                      datai))))
 
 ;; inlining for performance, does not currently support more than 4 keys deep
 (defn ->event-check
@@ -126,7 +128,7 @@
               (->children children
                           rbindings)))))
 
-(defn ->reactions-fn [children]
+(defn ->reactions:fn [children]
   (let [bindings (keys children)]
     (->children children bindings)))
 
@@ -149,7 +151,7 @@
              id))
 
 (comment
-  (let [r (dj.reactions/->reactions-fn {[:data :x 1] {#_ #_ :actions {1 (fn [d_ e_] (println "hello world"))
+  (let [r (dj.reactions/->reactions:fn {[:data :x 1] {#_ #_ :actions {1 (fn [d_ e_] (println "hello world"))
                                                                       2 (fn [d_ e_] (println "wassap"))}
                                                       :children {[:e :y 3] {:actions {1 (fn [d_ e_] (println "aaaa"))}}}}
                                         [:e :y 3] {:actions {1 (fn [d_ e_] (println "hello world"))

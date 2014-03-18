@@ -30,7 +30,7 @@
 (defn onChange-push
   "pushes new text onto chan:output"
   [id data owner_]
-  (let [{:keys [dom:text chan:output]} (get data id)]
+  (let [{:keys [chan:output]} (get data id)]
     (fn [e]
       (.preventDefault e)
       ;; need to extract value right away before go block
@@ -63,12 +63,13 @@
        (cca/>! chan:external
                focus-owner)))))
 
-(def input-reaction [id opts]
-  (merge {:id id
-          :rules [[:e :event:type :onChange]]
-          :action (let [component:id (:component:id opts)]
-                    (fn [data e]
-                      (assoc-in data [component:id :dom:text] (:event:value e))))}
+(defn rxn:update-:dom:text [id opts]
+  (merge (let [component:id (:component:id opts)]
+           {:id id
+            :rules [[:e :event:type :onChange]
+                    [:e :id component:id]]
+            :action (fn [data e]
+                      (assoc-in data [component:id :dom:text] (:event:value e)))})
          opts))
 
 (defn input [id opts]
@@ -92,6 +93,7 @@
                              (reify
                                om/IWillMount
                                (will-mount [this]
+                                 ;; BUG: this channel is permanently bound, no point in dynamic behavior
                                  (ccam/go
                                   (loop []
                                     (when-let [f (cca/<! chan:external)]

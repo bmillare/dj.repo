@@ -45,7 +45,7 @@
 (defn onChange-push
   "pushes new text onto chan:output"
   [id data owner_]
-  (let [{:keys [chan:output chan:external]} (get data id)]
+  (let [{:keys [chan:output]} (get data id)]
     (fn [e]
       (.preventDefault e)
       ;; need to extract value right away before go block
@@ -54,12 +54,8 @@
         (ccam/go
          (cca/>! chan:output
                  {:id id
-                  :event:target target
                   :event:type :onChange
-                  :event:value txt}))
-        #_ (ccam/go
-         (cca/>! chan:external
-                 focus-owner))))))
+                  :event:value txt}))))))
 
 (defn onKeyUp-push
   [id data owner_]
@@ -127,16 +123,6 @@
                                  (dom/input #js {:onChange onChange-fn
                                                  :onKeyUp onKeyUp-fn
                                                  ;; lose focus bug not due to onBlur, but due to no reestablishing focus with om
-                                                 #_ #_ :onBlur (fn [e]
-                                                                 (let [target (.-target e)
-                                                                       txt (.-value target)]
-                                                                   (.focus target)
-                                                                   (ccam/go
-                                                                    (cca/>! chan:output
-                                                                            {:id id
-                                                                             :event:target target
-                                                                             :event:type :onBlur
-                                                                             :event:value txt}))))
                                                  :value dom:text
                                                  :style dom:style})))))}
          opts))

@@ -24,6 +24,8 @@
 (defn ->node [binding-check actions-fn children-fn else-fn]
   ;; compile time checks to remove runtime checks
   (case [(some? children-fn) (some? else-fn)]
+    ;;we use two datas, data0 for checks before anything got manipulated, and data1 for the resulting state after modifications, I choose this to be more deterministic for checking
+    
     ;; template fn, others are for degenerate cases
     [true true] (fn [data0 datai e]
                   (if (binding-check data0 e)

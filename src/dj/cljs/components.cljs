@@ -21,9 +21,8 @@
   (let [{:keys [redirect-focus:id]} (get data id)
         {:keys [chan:external]} (get data redirect-focus:id)]
     (fn [e_]
-      (ccam/go
-       (cca/>! chan:external
-               focus-owner)))))
+      (cca/put! chan:external
+                focus-owner))))
 
 (defn onChange-ignore-and-push
   "pushes new text onto chan:output but then reverts it back to previous form"
@@ -36,11 +35,10 @@
         ;; undo change in textbox
         (set! (.-value (.-target e))
               dom:text)
-        (ccam/go
-         (cca/>! chan:output
-                 {:id id
-                  :event:type :onChange
-                  :event:value txt}))))))
+        (cca/put! chan:output
+                  {:sender:id id
+                   :event:type :onChange
+                   :event:value txt})))))
 
 (defn onChange-push
   "pushes new text onto chan:output"
@@ -51,11 +49,10 @@
       ;; need to extract value right away before go block
       (let [target (.-target e)
             txt (.-value target)]
-        (ccam/go
-         (cca/>! chan:output
-                 {:id id
-                  :event:type :onChange
-                  :event:value txt}))))))
+        (cca/put! chan:output
+                  {:sender:id id
+                   :event:type :onChange
+                   :event:value txt})))))
 
 (defn onKeyUp-push
   [id data owner_]
@@ -63,17 +60,16 @@
     (fn [e]
       ;; need to extract value right away before go block
       (let [keyCode (.-keyCode e)]
-        (ccam/go
-         (cca/>! chan:output
-                 {:id id
-                  :event:type :onKeyUp
-                  :event:value keyCode}))))))
+        (cca/put! chan:output
+                  {:sender:id id
+                   :event:type :onKeyUp
+                   :event:value keyCode})))))
 
 (defn rxn:update-:dom:text [id opts]
   (merge (let [component:id (:component:id opts)]
            {:id id
             :rules [[:e :event:type :onChange]
-                    [:e :id component:id]]
+                    [:e :sender:id component:id]]
             :action (fn [data e]
                       (assoc-in data [component:id :dom:text] (:event:value e)))})
          opts))

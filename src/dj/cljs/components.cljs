@@ -112,8 +112,8 @@
                                (did-mount [this]
                                  (.log js/console "didmount")
                                  ;; work around unfocus bug
-                                 (focus-owner owner)
-                                 (cursor-end owner))
+                                 #_ (focus-owner owner)
+                                 #_ (cursor-end owner))
                                om/IWillUpdate
                                (will-update [this _ _]
                                  (.log js/console "willupdate"))

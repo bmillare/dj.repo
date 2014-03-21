@@ -48,7 +48,7 @@ cont: a fn that updates the page from the server
   [store-folder query-string]
   (-> (dj.io/file store-folder "db/indexes")
       ds/read-index-store-folder
-      (query query-string)
+      (str-search-store-index query-string)
       (add-folder-list store-folder)))
 
 #_ (defn find-files [root-dir exclusions]

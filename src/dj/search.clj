@@ -1,5 +1,6 @@
 (ns dj.search
-  (:require [dj.store :as ds]))
+  (:require [dj.store :as ds]
+            [dj.paths :as dp]))
 
 ;; switch to new user interface, first search
 
@@ -33,7 +34,7 @@ filters for q in key and value
                  (assoc ret
                    sid
                    {:description v
-                    :file-paths (mapv dj.io/get-name (dj.io/ls (dj.io/file store-folder sid)))})))
+                    :file-entries (mapv dp/file->entry (dj.io/ls (dj.io/file store-folder sid)))})))
              {}
              index-map))
 

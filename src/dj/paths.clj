@@ -1,6 +1,8 @@
 (ns dj.paths
   (:require [dj.io]))
 
+;; Requires java7 or higher
+
 (defn file->entry [^java.io.File file]
   {:name (dj.io/get-name file)
    :path (dj.io/get-path file)

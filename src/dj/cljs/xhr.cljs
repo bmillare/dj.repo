@@ -16,7 +16,7 @@
       (.setRequestHeader "Accept" "application/edn")
       (.send txt))))
 
-(defn get [{:keys [response:fn url txt]}]
+#_ (defn get [{:keys [response:fn url txt]}]
   (let [xhr (js/XMLHttpRequest.)
         ready-state:id 4]
     (doto xhr

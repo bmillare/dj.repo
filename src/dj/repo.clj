@@ -18,6 +18,7 @@
                              "dj.leiningen" [[leiningen-core "2.1.3"]]
                              "dj.install" []
                              "dj.chm" [[org.bmillare/dj.peg "0.3.1"]]
+                             "dj.search" []
                              "" []}})
 
 (defn dependent-namespaces [repo-relative-path]

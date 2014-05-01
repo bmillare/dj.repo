@@ -63,5 +63,11 @@
   (-emit-form [form]
     (emit-tag form)))
 
+;; convert everything to use new form [tag attr & content]
+(defn convert [[tag attr & content]]
+  {:tag tag
+   :attr attr
+   :content (vec content)})
+
 (defn emit [forms]
   (apply str (map -emit-form forms)))

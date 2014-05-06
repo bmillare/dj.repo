@@ -16,13 +16,8 @@
   (-emit-form [_]
     (emit-points x y)))
 
-
-(defn svg [attrs content]
-  {:tag :svg
-   :attrs (merge {:xmlns "http://www.w3.org/2000/svg"
-                  :version "1.1"}
-                 attrs)
-   :content content})
+(def svg [:svg {:xmlns "http://www.w3.org/2000/svg"
+                :version "1.1"}])
 
 (defn emit-transform-seq [transform-seq]
   (cs/join " "

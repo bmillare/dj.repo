@@ -19,6 +19,7 @@
                              "dj.install" []
                              "dj.chm" [[org.bmillare/dj.peg "0.3.1"]]
                              "dj.search" []
+                             "dj.security" []
                              "" []}})
 
 (defn dependent-namespaces [repo-relative-path]

@@ -2,7 +2,7 @@
 
 ;; http://www.w3schools.com/dom/dom_http.asp
 
-(defn post [{:keys [response:fn url txt]}]
+(defn post [{:keys [response:fn url txt CSRF]}]
   (let [xhr (js/XMLHttpRequest.)]
     (doto xhr
       (.open "POST" url true)
@@ -12,12 +12,11 @@
                                      :headers (.getAllResponseHeaders xhr)})))
       (.setRequestHeader "Content-Type" "application/edn")
       (.setRequestHeader "Accept" "application/edn")
-      (.send txt))))
+      (.send (str CSRF txt)))))
 
 (defn get-raw
   [{:keys [response:fn url]}]
-  (let [xhr (js/XMLHttpRequest.)
-        ready-state:id 4]
+  (let [xhr (js/XMLHttpRequest.)]
     (doto xhr
       (.open "GET" url true)
       (aset "onload" (fn []
@@ -34,4 +33,4 @@
   (get-raw (update-in args
                       [:url]
                       (fn [url]
-                        (str url "?" (.encodeURIComponent js/window (:txt args)))))))
+                        (str url "?" (.encodeURIComponent js/window (str (:CSRF args) (:txt args))))))))

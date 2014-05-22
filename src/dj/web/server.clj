@@ -1,5 +1,5 @@
 (ns dj.web.server
-  (:require [ring.adapter.jetty :as jetty]))
+  (:require [org.httpkit.server :as server]))
 
 (defn ->dynamic-server
   "server that appends functionality while running
@@ -15,10 +15,9 @@ returns atom of opts and server
   [opts]
   (let [{:keys [port]} opts
         db (atom opts)
-        server (jetty/run-jetty (fn [request]
-                                  ((:handler @db) request))
-                                {:port port
-                                 :join? false})]
+        server (server/run-server (fn [request]
+                                    ((:handler @db) request))
+                                  {:port port})]
     (swap! db
            assoc
            :server
@@ -26,4 +25,4 @@ returns atom of opts and server
     db))
 
 (defn stop [server]
-  (.stop (:server @server)))
+  ((:server @server)))

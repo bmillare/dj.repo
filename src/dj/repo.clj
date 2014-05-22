@@ -10,7 +10,7 @@
   []
   {:namespace-dependencies '{"dj.cljs" [#_ [org.clojure/clojurescript ""]]
                              "dj.web" []
-                             "dj.web.server" [[ring/ring-jetty-adapter "1.2.1"]]
+                             "dj.web.server" [[http-kit "2.1.18"]]
                              "dj.sgml" []
                              "dj.io.extended" [[org.apache.directory.studio/org.apache.commons.io "2.4"]]
                              "dj.git" [[org.eclipse.jgit/org.eclipse.jgit "2.0.0.201206130900-r"]]

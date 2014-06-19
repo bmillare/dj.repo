@@ -9,6 +9,7 @@
   "put in system state :dj/packages"
   []
   {:namespace-dependencies '{"dj.cljs" [#_ [org.clojure/clojurescript ""]]
+                             "dj.cljs.repl" []
                              "dj.web" []
                              "dj.web.server" [[http-kit "2.1.18"]]
                              "dj.sgml" []

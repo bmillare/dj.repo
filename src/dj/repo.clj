@@ -8,7 +8,8 @@
 (defn default-packages
   "put in system state :dj/packages"
   []
-  {:namespace-dependencies '{"dj.cljs" [#_ [org.clojure/clojurescript ""]]
+  {:namespace-dependencies '{"dj.color.convert" [[primitive-math "0.1.3"]]
+                             "dj.cljs" [#_ [org.clojure/clojurescript ""]]
                              "dj.cljs.repl" []
                              "dj.web" []
                              "dj.web.server" [[http-kit "2.1.18"]]

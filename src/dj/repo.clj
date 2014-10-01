@@ -8,6 +8,8 @@
 (defn default-packages
   "put in system state :dj/packages"
   []
+  ;; empty lists are for documentation purposes only
+  ;; Non-existent entries and empty entries are treated the same
   {:namespace-dependencies '{"dj.color.convert" [[primitive-math "0.1.3"]]
                              "dj.cljs" [#_ [org.clojure/clojurescript ""]]
                              "dj.cljs.repl" []
@@ -24,7 +26,9 @@
                              "dj.security" []
                              "" []}})
 
-(defn dependent-namespaces [repo-relative-path]
+(defn dependent-namespaces
+  "get namespace dependencies from ns form"
+  [repo-relative-path]
   (-> repo-relative-path
       dc/find-resource
       ctnf/read-file-ns-decl

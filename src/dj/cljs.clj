@@ -1,3 +1,5 @@
+;;; DEPRECATED
+;;; This file is for reference only, see scratch/gallook/[repl,devmode,cider-cljs,
 (ns dj.cljs
   (:refer-clojure :exclude [load-file])
   (:require [dj]

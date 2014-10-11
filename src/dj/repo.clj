@@ -11,8 +11,8 @@
   ;; empty lists are for documentation purposes only
   ;; Non-existent entries and empty entries are treated the same
   {:namespace-dependencies '{"dj.color.convert" [[primitive-math "0.1.3"]]
-                             "dj.cljs" [#_ [org.clojure/clojurescript ""]]
-                             "dj.cljs.repl" []
+                             "dj.cljs" [#_ [org.clojure/clojurescript ""]] ; deprecated, see scratch/gallook
+                             "dj.cljs.repl" [] ; deprecated, see scratch/gallook
                              "dj.web" []
                              "dj.web.server" [[http-kit "2.1.18"]]
                              "dj.sgml" []

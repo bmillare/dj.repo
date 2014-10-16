@@ -115,3 +115,34 @@
   [process from]
   (binding [*in* (io/reader (from process))]
     (clojure.core/read-line)))
+
+(defn fsh
+  "an async call to proc
+this consumes the streams into strings with futures so it will never hang"
+  [& args]
+  (let [p (apply proc args)
+        out (future (stream-to-string p :out))
+        err (future (stream-to-string p :err))]
+    (assoc p
+      :out-future out
+      :err-future err)))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

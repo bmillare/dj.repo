@@ -1,4 +1,7 @@
-(ns dj.store)
+(ns dj.store
+  (:require [dj.io]
+            [dj.repl]
+            [dj.shell]))
 
 (defn read-index-store*
   "
@@ -35,3 +38,45 @@ read all file indexes and merge into single in-memory index
   [^java.io.File folder]
   (apply merge (map read-index-store (.listFiles folder))))
 
+(def index-folder "db/indexes")
+
+;;; High-level
+;; ----------------------------------------------------------------------
+
+(defn latest [sys partition]
+  (let [data (-> sys
+                 :dj/store-path
+                 (dj.io/file dj.store/index-folder)
+                 read-index-store-folder
+                 keys)
+        only-p (into []
+                     (comp
+                      (filter (fn [k]
+                                (= (:partition k)
+                                   "notes")))
+                      (map (fn [k]
+                             (Integer/parseInt (:index k)))))
+                     data)
+        ret (last (sort only-p))]
+    ret))
+
+(defn new-entry [sys partition id filename]
+  (let [store-path (:dj/store-path sys)
+        folder (-> store-path
+                   (dj.io/file "notes" (str id)))
+        index (dj.io/file store-path index-folder partition)
+        new-file (dj.io/file folder filename)]
+    (if (.exists folder)
+      (throw (ex-info (str (dj.io/get-path folder)
+                              " entry already exists")
+                      (dj.repl/local-context)))
+      (do
+        (when-not (zero? (dj.shell/exit-code (dj.shell/proc "emacsclient" "-nc" (dj.io/get-path index))))
+          (throw (ex-info (str "failed to open index, emacsclient -nc failed")
+                          (dj.repl/local-context))))
+        (dj.io/mkdir folder)
+        (dj.io/poop new-file
+                    "")
+        (when-not (zero? (dj.shell/exit-code (sh/sh "emacsclient" "-nc" (dj.io/get-path new-file))))
+          (throw (ex-info (str "failed to open new file, emacsclient -nc failed")
+                          (dj.repl/local-context))))))))

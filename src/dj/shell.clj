@@ -118,31 +118,18 @@
 
 (defn fsh
   "an async call to proc
-this consumes the streams into strings with futures so it will never hang"
+this consumes the streams into strings with futures so it will never hang
+
+also auto translates java.io.File -> str
+"
   [& args]
-  (let [p (apply proc args)
+  (let [p (apply proc (map #(if (= (type %)
+                                   java.io.File)
+                              (dj.io/get-path %)
+                              %)
+                           args))
         out (future (stream-to-string p :out))
         err (future (stream-to-string p :err))]
     (assoc p
       :out-future out
       :err-future err)))
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

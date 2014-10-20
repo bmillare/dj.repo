@@ -53,30 +53,33 @@ read all file indexes and merge into single in-memory index
                      (comp
                       (filter (fn [k]
                                 (= (:partition k)
-                                   "notes")))
+                                   partition)))
                       (map (fn [k]
                              (Integer/parseInt (:index k)))))
                      data)
         ret (last (sort only-p))]
     ret))
 
-(defn new-entry [sys partition id filename]
-  (let [store-path (:dj/store-path sys)
-        folder (-> store-path
-                   (dj.io/file "notes" (str id)))
-        index (dj.io/file store-path index-folder partition)
-        new-file (dj.io/file folder filename)]
-    (if (.exists folder)
-      (throw (ex-info (str (dj.io/get-path folder)
+(defn new-entry
+  "create a new store entry with folder and stub file (opt) in partition"
+  ([sys partition id & [filename]]
+     (let [store-path (:dj/store-path sys)
+           folder (-> store-path
+                      (dj.io/file partition (str id)))
+           index (dj.io/file store-path index-folder partition)]
+       (if (.exists folder)
+         (throw (ex-info (str (dj.io/get-path folder)
                               " entry already exists")
-                      (dj.repl/local-context)))
-      (do
-        (when-not (zero? (dj.shell/exit-code (dj.shell/proc "emacsclient" "-nc" (dj.io/get-path index))))
-          (throw (ex-info (str "failed to open index, emacsclient -nc failed")
-                          (dj.repl/local-context))))
-        (dj.io/mkdir folder)
-        (dj.io/poop new-file
-                    "")
-        (when-not (zero? (dj.shell/exit-code (sh/sh "emacsclient" "-nc" (dj.io/get-path new-file))))
-          (throw (ex-info (str "failed to open new file, emacsclient -nc failed")
-                          (dj.repl/local-context))))))))
+                         (dj.repl/local-context)))
+         (do
+           (when-not (zero? (dj.shell/exit-code (dj.shell/fsh "emacsclient" "-nc" index)))
+             (throw (ex-info (str "failed to open index, emacsclient -nc failed")
+                             (dj.repl/local-context))))
+           (dj.io/mkdir folder)
+           (when filename
+             (let [new-file (dj.io/file folder filename)]
+               (dj.io/poop new-file
+                           "")
+               (when-not (zero? (dj.shell/exit-code (dj.shell/fsh "emacsclient" "-nc" new-file)))
+                 (throw (ex-info (str "failed to open new file, emacsclient -nc failed")
+                                 (dj.repl/local-context)))))))))))

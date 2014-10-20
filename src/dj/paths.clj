@@ -31,3 +31,69 @@
             {:name (.toString (.getName path (int (dec (.getNameCount path)))))
              :path (.toString path)})
           (drop 1 path-sequence))))
+
+(let [t (type #"")]
+  (defn f*
+    "returns ls filtered of path with last arg as filter regexp"
+    [& args]
+    (let [arg-count (count args)
+          l (last args)]
+      (if (= (type l)
+             t)
+        (case arg-count
+          0 []
+          1 (into []
+                  (filter (fn [f]
+                            (re-find l
+                                     (dj.io/get-name f))))
+                  (-> (dj.io/file "/")
+                      dj.io/ls))
+          (into []
+                (filter (fn [f]
+                          (re-find l
+                                   (dj.io/get-name f))))
+                (-> (apply dj.io/file (drop-last args))
+                    dj.io/ls)))
+        (throw (ex-info "last arg is not a regexp"
+                        (dj.repl/local-context))))))
+  (defn fr
+    "returns 'find' filtered of path with last arg as filter regexp"
+    [& args]
+    (let [arg-count (count args)
+          l (last args)
+          find-files (fn [root-dir]
+                       (let [ff (fn find-files* [dir ret]
+                                  (reduce (fn [ret ^java.io.File file]
+                                            (let [fname (dj.io/get-name file)]
+                                              (if (.isDirectory file)
+                                                (if (re-find l fname)
+                                                  (let [prev-count (count ret)
+                                                        results (find-files* file ret)]
+                                                    (if (= prev-count
+                                                           (count results))
+                                                      (conj! results
+                                                             file)
+                                                      results))
+                                                  (find-files* file ret))
+                                                (if (re-find l fname)
+                                                  (conj! ret
+                                                         file)
+                                                  ret))))
+                                          ret
+                                          (dj.io/ls dir)))]
+                         (persistent!
+                          (ff root-dir (transient [])))))]
+      (if (= (type l)
+             t)
+        (case arg-count
+          0 []
+          1 (find-files (dj.io/file "/"))
+          (find-files (apply dj.io/file (drop-last args))))
+        (throw (ex-info "last arg is not a regexp"
+                        (dj.repl/local-context)))))))
+
+(defn f
+  "takes first element of f*"
+  [& args]
+  (first (apply f* args)))
+

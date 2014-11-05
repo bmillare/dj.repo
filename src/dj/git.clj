@@ -196,13 +196,13 @@ Default set of files are dj and the dj/usr/src/* directories
                   m
                   (assoc m
                     (dj.io/get-path f)
-                    (map (fn [^org.eclipse.jgit.diff.DiffEntry d]
-                           (let [change-type (.toString (.getChangeType d))
-                                 new-path (.getNewPath d)
-                                 old-path (.getOldPath d)
-                                 score (.getScore d)]
-                             (str change-type "(" score "): " old-path " -> " new-path)))
-                         d-results))))
+                    (mapv (fn [^org.eclipse.jgit.diff.DiffEntry d]
+                            (let [change-type (.toString (.getChangeType d))
+                                  new-path (.getNewPath d)
+                                  old-path (.getOldPath d)
+                                  score (.getScore d)]
+                              (str change-type "(" score "): " old-path " -> " new-path)))
+                          d-results))))
               m))
           {}
           files))

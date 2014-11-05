@@ -1,7 +1,6 @@
 (ns dj.git
   (:require [dj]
-	    [dj.io]
-            [dj.source]))
+	    [dj.io]))
 
 (defrecord git-logger [log]
   com.jcraft.jsch.Logger

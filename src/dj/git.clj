@@ -13,14 +13,14 @@
 
 (defn request-passphrase
   "Creates input dialog and returns password"
-  [msg]
-  (let [add-border (fn [component]
+  [^String msg]
+  (let [add-border (fn [^javax.swing.JComponent component]
 		     (doto component
 		       (.setBorder
 			(javax.swing.BorderFactory/createLineBorder (java.awt.Color. 0 0 0 0)
 								    10))))
 	ret-pw (promise)
-	deliver-password (fn [password]
+	deliver-password (fn [^chars password]
 			   (deliver ret-pw
 				    (apply str password))
 			   (java.util.Arrays/fill password \0))
@@ -35,7 +35,7 @@
 		(.add pw))
 	frame (doto (javax.swing.JFrame. "Input Required")
 		(.setLocationRelativeTo nil)
-		(.add (add-border panel))
+		(.add ^javax.swing.JComponent (add-border panel))
 		(.addWindowListener (reify java.awt.event.WindowListener
 					   (windowActivated [this event]
 							    (focus))
@@ -77,7 +77,9 @@
 (extend-type org.eclipse.jgit.transport.CredentialItem
   CPSetter
   (set-value [this v]
-	     (.setValue this (str v))))
+    (throw (ex-info "abstract CredentialItem provided, need to call derived type" {:v v
+                                                                                   :this this}))
+    #_ (.setValue this (str v))))
 
 (extend-type org.eclipse.jgit.transport.CredentialItem$CharArrayType
   CPSetter
@@ -95,7 +97,7 @@
   (proxy [org.eclipse.jgit.transport.CredentialsProvider] []
     (get [uri items]
 	 (let [items (seq items)]
-	   (doseq [i items]
+	   (doseq [^org.eclipse.jgit.transport.CredentialItem i items]
 	     (set-value i
 			(m-request-passphrase
 			 (.getPromptText i)))))
@@ -169,7 +171,7 @@
   (-> (.diff (org.eclipse.jgit.api.Git/open file))
       (.call)))
 
-(defn diff-entry-map [d]
+(defn diff-entry-map [^org.eclipse.jgit.diff.DiffEntry d]
   {:change-type (.toString (.getChangeType d))
    :new-id (.getNewId d)
    :new-mode (.getNewMode d)
@@ -186,7 +188,7 @@ Returns map of paths -> seq of strings describing changes for git repository
 Default set of files are dj and the dj/usr/src/* directories
 "
   [files]
-  (reduce (fn [m f]
+  (reduce (fn [m ^java.io.File f]
             (if (and (.isDirectory f)
                      (dj.io/exists? (dj.io/file f ".git")))
               (let [d-results (diff f)]
@@ -194,7 +196,7 @@ Default set of files are dj and the dj/usr/src/* directories
                   m
                   (assoc m
                     (dj.io/get-path f)
-                    (map (fn [d]
+                    (map (fn [^org.eclipse.jgit.diff.DiffEntry d]
                            (let [change-type (.toString (.getChangeType d))
                                  new-path (.getNewPath d)
                                  old-path (.getOldPath d)

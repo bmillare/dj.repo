@@ -138,7 +138,7 @@ Takes a fn-or-var and a vector of keys
 
 (defn treefn
   ([fn-map root-key input-keys]
-     (treefn* fn-map root-key input-keys inlined-emitter))
+     (treefn fn-map root-key input-keys inlined-emitter))
   ([fn-map root-key input-keys emitter]
      (let [input-key-set (set input-keys)
            available-keys (set (keys fn-map))

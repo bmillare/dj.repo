@@ -17,7 +17,7 @@
   [& args]
   (let [[cmd args] (split-with (complement keyword?) args)
         args (apply hash-map args)
-        builder (ProcessBuilder. (into-array String cmd))
+        builder (ProcessBuilder. (java.util.LinkedList. (vec cmd)))
         env (.environment builder)]
     (when (:clear-env args)
       (.clear env))
@@ -40,7 +40,7 @@
 (defn destroy
   "Destroy a process."
   [process]
-  (.destroy (:process process)))
+  (.destroy ^Process (:process process)))
 
 ;; .waitFor returns the exit code. This makes this function useful for
 ;; both getting an exit code and stopping the thread until a process
@@ -50,10 +50,10 @@
    the exit code. If timeout is passed, it is assumed to be milliseconds
    to wait for the process to exit. If it does not exit in time, it is
    killed (with or without fire)."
-  ([process] (.waitFor (:process process)))
+  ([process] (.waitFor ^Process (:process process)))
   ([process timeout]
      (try
-       (.get (future (.waitFor (:process process))) timeout TimeUnit/MILLISECONDS)
+       @(future (.waitFor ^Process (:process process))) timeout TimeUnit/MILLISECONDS
        (catch Exception e
          (if (or (instance? TimeoutException e)
                  (instance? TimeoutException (.getCause e)))
@@ -64,12 +64,12 @@
 (defn flush
   "Flush the output stream of a process."
   [process]
-  (.flush (:in process)))
+  (.flush ^java.io.OutputStream (:in process)))
 
 (defn done
   "Close the process's output stream (sending EOF)."
   [proc]
-  (-> proc :in .close))
+  (.close ^java.io.OutputStream (:in proc)))
 
 (defn stream-to
   "Stream :out or :err from a process to an ouput stream.

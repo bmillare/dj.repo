@@ -19,8 +19,8 @@ read a single file-index into an in-memory index
                         :index idx}
                        body)))
            (transient {})
-           (-> (slurp file)
-               (.split (str #"\r\n|[\r\n]"))))))
+           (.split ^String (slurp file)
+                   (str #"\r\n|[\r\n]")))))
 
 (let [memoized (memoize (fn [file ts]
                           (read-index-store* file)))]

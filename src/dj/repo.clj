@@ -24,6 +24,7 @@
                              "dj.chm" [[org.bmillare/dj.peg "0.3.1"]]
                              "dj.search" []
                              "dj.security" []
+                             "dj.jna" [[net.java.dev.jna/jna "4.1.0"]]
                              "" []}})
 
 (defn dependent-namespaces

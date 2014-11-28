@@ -18,7 +18,7 @@
                                     (map dj.io/get-name)
                                     (map (fn [s]
                                            (second (re-matches #"lib(vtk.+?Java)\.(so|dll)" s)))))
-                                   (dj.io/ls (dj.io/file "/usr/lib64/vtk-5.10")))]
+                                   (dj.io/ls (dj.io/file native-library-directory-path)))]
     (dj.classloader/add-classpath "/usr/share/java/vtk/vtk.jar")
     (dj.classloader/append-native-path! [native-library-directory-path])
     

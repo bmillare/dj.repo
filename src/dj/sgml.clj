@@ -92,6 +92,11 @@
   (-emit-form [form]
     nil))
 
+(extend-type Number
+  IEmitForm
+  (-emit-form [form]
+    (str form)))
+
 (extend-type Object
   IEmitForm
   (-emit-form [form]

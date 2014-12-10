@@ -82,6 +82,7 @@
                  [:body nil nil]])
   "<!DOCUMENT html [<!DOCUMENT html blah><!DOCUMENT html blah>]><!-- asdf falskdfj asldfkj alskfdj  --><?asdf asdf=\"asdf\" ab=\"bb\"?><body class=\"jasdf\">useit</body><body></body>")
 
+;; BUG: Strings should be escaped
 (extend-type String
   IEmitForm
   (-emit-form [form]

@@ -7,6 +7,8 @@
 splits a query-string by whitespace and requires all strings must exist in index values
 
 filters for q in key and value
+
+returns {:partition p :index i} -> description  
 "
   [index-map ^String q]
   (if (empty? q)
@@ -26,26 +28,42 @@ filters for q in key and value
                   (transient {})
                   index-map)))))
 
-(defn add-folder-list [index-map store-folder]
-  (reduce-kv (fn [ret k v]
-               (let [sid (str (:partition k) "/" (:index k))]
-                 (assoc ret
-                   sid
-                   {:description v
-                    :file-entries (mapv dp/file->entry (dj.io/ls (dj.io/file store-folder sid)))})))
-             {}
-             index-map))
+;; attempt at making transducer like functions for hash-maps
+(defn kv-comp [rf & fs]
+  (let [f ((apply comp fs) list)]
+    (fn [m k v]
+      (let [[k' v'] (f k v)]
+        (rf m
+            k' v')))))
+
+(defn basic-hashmap-form [cont]
+  (fn [k v]
+    (cont k
+          (let [sid (str (:partition k) "/" (:index k))]
+            {:sid sid
+             :description v}))))
+
+(defn add-folder-list [store-folder]
+  (fn [cont]
+    (fn [k v]
+      (cont k
+            (assoc v
+              :file-entries (mapv dp/file->entry (dj.io/ls (dj.io/file store-folder (:sid v)))))))))
+
+(defn get-folder-list
+  "transforms index-map values from description -> {:sid ... :description ... :file-list ...}"
+  [index-map store-folder]
+  (persistent!
+   (reduce-kv (kv-comp assoc!
+                       basic-hashmap-form
+                       (add-folder-list store-folder))
+              (transient {})
+              index-map)))
 
 (defn str-search-store
-  "
-Returns a function the browser will call with the search query-string
-
-index-folder: folder with all the indexes
-display-fn: given a result returns result-dom
-cont: a fn that updates the page from the server
-"
+  "convenience function, gets index-map and passes it to get-folder-list"
   [store-folder query-string]
   (-> (dj.io/file store-folder "db/indexes")
       ds/read-index-store-folder
       (str-search-store-index query-string)
-      (add-folder-list store-folder)))
+      (get-folder-list store-folder)))

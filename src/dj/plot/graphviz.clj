@@ -108,5 +108,7 @@
 
 (defn emit
   "See graphivz"
-  [graph]
-  (:out (cjs/sh "neato" "-Tsvg" :in (graphviz graph))))
+  ([graph]
+     (emit graph "neato"))
+  ([graph processor]
+     (:out (cjs/sh processor "-Tsvg" :in (graphviz graph)))))

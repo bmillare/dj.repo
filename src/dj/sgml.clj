@@ -104,7 +104,12 @@
     (emit-tag form)))
 
 (defn emit [forms]
-  (apply str (map -emit-form forms)))
+  (try
+    (apply str (map -emit-form forms))
+    (catch Exception e
+      (throw (ex-info "error emitting"
+                      {:forms forms}
+                      e)))))
 
 ;; really it should be templates and tools that let you modify subsets
 ;; of the tree like first node with name 'html' etc.

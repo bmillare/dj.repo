@@ -14,7 +14,8 @@
                              "dj.cljs" [#_ [org.clojure/clojurescript ""]] ; deprecated, see scratch/gallook
                              "dj.cljs.repl" [] ; deprecated, see scratch/gallook
                              "dj.web" []
-                             "dj.web.server" [[http-kit "2.1.18"]]
+                             "dj.web.server" [[http-kit "2.1.18" :exclusions [org.clojure/clojure
+                                                                              org.clojure/clojurescript]]]
                              "dj.sgml" []
                              "dj.io.extended" [[org.apache.directory.studio/org.apache.commons.io "2.4"]]
                              "dj.git" [[org.eclipse.jgit/org.eclipse.jgit "2.0.0.201206130900-r"]]

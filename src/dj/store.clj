@@ -72,14 +72,14 @@ read all file indexes and merge into single in-memory index
                               " entry already exists")
                          (dj.repl/local-context)))
          (do
-           (when-not (zero? (dj.shell/exit-code (dj.shell/fsh "emacsclient" "-nc" index)))
-             (throw (ex-info (str "failed to open index, emacsclient -nc failed")
+           (when-not (zero? (dj.shell/exit-code (dj.shell/fsh "emacsclient" "-n" index)))
+             (throw (ex-info (str "failed to open index, emacsclient -n failed")
                              (dj.repl/local-context))))
            (dj.io/mkdir folder)
            (when filename
              (let [new-file (dj.io/file folder filename)]
                (dj.io/poop new-file
                            "")
-               (when-not (zero? (dj.shell/exit-code (dj.shell/fsh "emacsclient" "-nc" new-file)))
-                 (throw (ex-info (str "failed to open new file, emacsclient -nc failed")
+               (when-not (zero? (dj.shell/exit-code (dj.shell/fsh "emacsclient" "-n" new-file)))
+                 (throw (ex-info (str "failed to open new file, emacsclient -n failed")
                                  (dj.repl/local-context)))))))))))

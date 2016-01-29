@@ -35,7 +35,35 @@
       ctnf/read-file-ns-decl
       ctnp/deps-from-ns-decl))
 
-(defn recursive-namespace-dependencies [namespace-names namespace-dependencies]
+(defn ns-name->repo-relative-path [n]
+  (str (dj/replace-map n {"." "/"})
+       ".clj"))
+
+(defn recursive-dependent-namespaces
+  "like dependent-namespaces but gets all dependent namespaces recursively"
+  [repo-relative-path]
+  (loop [ret #{}
+         new:ns:names (dependent-namespaces repo-relative-path)]
+    (if (empty? new:ns:names)
+      ret
+      (let [new:ns:name (first new:ns:names)
+            ns:dependents (try
+                            (-> new:ns:name
+                                ns-name->repo-relative-path
+                                dependent-namespaces)
+                            (catch Exception e
+                              #{}))
+            new:ns:dependents (clojure.set/difference ns:dependents
+                                                      ret)]
+        (if (empty? new:ns:dependents)
+          (recur ret (disj new:ns:names new:ns:name))
+          (recur (clojure.set/union ret new:ns:dependents)
+                 (clojure.set/union new:ns:names new:ns:dependents)))))))
+
+(defn recursive-namespace-dependencies
+  "really this looks up and then returns the project dependencies of
+  the namespace"
+  [namespace-names namespace-dependencies]
   (set (apply concat (for [n namespace-names
                            :let [dependencies (namespace-dependencies (name n))]
                            :when dependencies]
@@ -43,12 +71,8 @@
 
 (defn get-jar-dependencies* [repo-relative-path namespace-dependencies]
   (-> repo-relative-path
-      dependent-namespaces
+      recursive-dependent-namespaces
       (recursive-namespace-dependencies namespace-dependencies)))
-
-(defn ns-name->repo-relative-path [n]
-  (str (dj/replace-map n {"." "/"})
-       ".clj"))
 
 (defn get-jar-dependencies [ns:name sys]
   (let [namespace-dependencies (-> sys
